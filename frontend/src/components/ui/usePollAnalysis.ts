@@ -18,7 +18,9 @@ interface UsePollAnalysisReturn {
   reportError: (userMessage: string, debugDetail?: string) => void;
 }
 
-export function usePollAnalysis(): UsePollAnalysisReturn {
+export function usePollAnalysis(
+  onClearSession?: () => void,
+): UsePollAnalysisReturn {
   const [status, setStatus] = useState<PollStatus>("idle");
   const [results, setResults] = useState<{
     profile: ExtractedCV;
@@ -47,6 +49,7 @@ export function usePollAnalysis(): UsePollAnalysisReturn {
     setResults(null);
     setCandidateId(null);
     clearInterval(pollTimer.current);
+    onClearSession?.();
   }
 
   useEffect(() => {

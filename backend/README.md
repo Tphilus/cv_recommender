@@ -1,8 +1,22 @@
 # CV Recommender API
 
 FastAPI backend that accepts a candidate's CV (PDF/DOCX/TXT/image), extracts structured
-data via a multimodal LLM (OpenAI GPT-4o or Gemini 1.5 Pro), suggests concrete CV
-improvements, and recommends jobs with real apply/learning links.
+data via an LLM, suggests concrete CV improvements, and recommends jobs with real
+apply/learning links.
+
+### LLM provider
+
+[`app/services/llm_service.py`](app/services/llm_service.py) supports four
+interchangeable providers via `get_llm(provider)`: `huggingface` (default —
+Hugging Face's `Qwen/Qwen3.5-9B`, free-tier), `groq`, `gemini`, and `openai` (the
+multimodal/vision fallback for image uploads and scanned PDFs — see
+`VISION_CAPABLE_PROVIDERS`). Switch the active default via `DEFAULT_LLM_PROVIDER` in
+`.env`; all four stay fully implemented and working regardless of which is active.
+
+Qwen3.5-9B is a "thinking" model — its hidden reasoning trace is disabled via
+`chat_template_kwargs.enable_thinking=False` (bound *after* `with_structured_output`,
+see the comment in `llm_service.py`), since left on it burns most of the token budget
+before producing the real answer.
 
 ## Local setup
 

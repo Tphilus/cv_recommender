@@ -25,15 +25,18 @@ export default function App() {
   const [recents, setRecents] = useState<RecentAnalysis[]>(() =>
     getRecentAnalyses(),
   );
-  const { status, results, startPolling, clearResults, reportError } =
-    usePollAnalysis();
-
   // nuqs keeps ?candidate=&file= in the URL — shareable & bookmarkable
   const [{ candidate: candidateId, file: uploadedFilename }, setSession] =
     useQueryStates({
       candidate: parseAsString.withDefault(""),
       file: parseAsString.withDefault(""),
     });
+
+  // A failed poll (stale/deleted candidate, network error) must also clear the
+  // URL — otherwise the poisoned ?candidate=<id> re-triggers the same error on
+  // every subsequent refresh.
+  const { status, results, startPolling, clearResults, reportError } =
+    usePollAnalysis(() => void setSession({ candidate: "", file: "" }));
 
   // Restore session from URL on first load
   useEffect(() => {
