@@ -9,6 +9,7 @@ langchain-core>=0.3
 langchain-openai>=0.2
 langchain-google-genai>=2
 langchain-groq>=1
+langsmith>=0.10             # LLM call tracing (app/core/config.py enables it via LANGSMITH_* env vars)
 boto3>=1.35                 # AWS S3 — active storage backend (app/services/s3_service.py)
 pypdf>=5
 Pillow>=10

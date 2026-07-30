@@ -1,36 +1,46 @@
 import axios from "axios";
+import { parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
-import { useQueryStates, parseAsString } from "nuqs";
 import { uploadCv } from "./api/client";
-import ResultsScreen from "./components/results/ResultsScreen";
 import Sidebar from "./components/layout/Sidebar";
+import ResultsScreen from "./components/results/ResultsScreen";
 import SearchPage from "./components/search/SearchPage";
-import UploadScreen from "./components/upload/UploadScreen";
-import AnalyzingScreen from "./components/upload/AnalyzingScreen";
 import LoadingScreen from "./components/ui/LoadingScreen";
-import { usePollAnalysis } from "./hooks/usePollAnalysis";
-import { addRecentAnalysis, getRecentAnalyses, removeRecentAnalysis, type RecentAnalysis } from "./utils/recentAnalyses";
+import AnalyzingScreen from "./components/upload/AnalyzingScreen";
+import UploadScreen from "./components/upload/UploadScreen";
+// import { usePollAnalysis } from "./hooks/usePollAnalysis";
+import { usePollAnalysis } from "./components/ui/usePollAnalysis";
+import {
+  addRecentAnalysis,
+  getRecentAnalyses,
+  removeRecentAnalysis,
+  type RecentAnalysis,
+} from "./utils/recentAnalyses";
 
 export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   // true = user just uploaded; false = restoring from URL on refresh
   const isNewUpload = useRef(false);
-  const [recents, setRecents] = useState<RecentAnalysis[]>(() => getRecentAnalyses());
-  const { status, results, startPolling, clearResults, reportError } = usePollAnalysis();
+  const [recents, setRecents] = useState<RecentAnalysis[]>(() =>
+    getRecentAnalyses(),
+  );
+  const { status, results, startPolling, clearResults, reportError } =
+    usePollAnalysis();
 
   // nuqs keeps ?candidate=&file= in the URL — shareable & bookmarkable
-  const [{ candidate: candidateId, file: uploadedFilename }, setSession] = useQueryStates({
-    candidate: parseAsString.withDefault(""),
-    file: parseAsString.withDefault(""),
-  });
+  const [{ candidate: candidateId, file: uploadedFilename }, setSession] =
+    useQueryStates({
+      candidate: parseAsString.withDefault(""),
+      file: parseAsString.withDefault(""),
+    });
 
   // Restore session from URL on first load
   useEffect(() => {
     if (candidateId) {
       startPolling(candidateId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleUpload(file: File) {
@@ -40,14 +50,20 @@ export default function App() {
     try {
       const { candidate_id } = await uploadCv(file);
       setRecents(
-        addRecentAnalysis({ candidateId: candidate_id, filename: file.name, uploadedAt: new Date().toISOString() })
+        addRecentAnalysis({
+          candidateId: candidate_id,
+          filename: file.name,
+          uploadedAt: new Date().toISOString(),
+        }),
       );
       void setSession({ candidate: candidate_id, file: file.name });
       startPolling(candidate_id);
     } catch (err) {
       isNewUpload.current = false;
       void setSession({ candidate: "", file: "" });
-      const detail = axios.isAxiosError(err) ? (err.response?.data as { detail?: string } | undefined)?.detail : undefined;
+      const detail = axios.isAxiosError(err)
+        ? (err.response?.data as { detail?: string } | undefined)?.detail
+        : undefined;
       reportError("We couldn't upload your CV. Please try again.", detail);
     } finally {
       setIsUploading(false);
@@ -104,25 +120,28 @@ export default function App() {
           />
         )}
 
-        {status === "idle" && <UploadScreen onUpload={handleUpload} disabled={isUploading} />}
+        {status === "idle" && (
+          <UploadScreen onUpload={handleUpload} disabled={isUploading} />
+        )}
 
-            {status === "polling" && (
-              isNewUpload.current
-                ? <AnalyzingScreen filename={uploadedFilename || "your CV"} />
-                : <LoadingScreen />
-            )}
+        {status === "polling" &&
+          (isNewUpload.current ? (
+            <AnalyzingScreen filename={uploadedFilename || "your CV"} />
+          ) : (
+            <LoadingScreen />
+          ))}
 
-            {status === "done" && candidateId && results && (
-              <div className="mx-auto w-full max-w-4xl px-5 pt-10 pb-20">
-                <ResultsScreen
-                  candidateId={candidateId}
-                  filename={uploadedFilename}
-                  profile={results.profile}
-                  improvements={results.improvements}
-                  onStartOver={reset}
-                />
-              </div>
-            )}
+        {status === "done" && candidateId && results && (
+          <div className="mx-auto w-full max-w-4xl px-5 pt-10 pb-20">
+            <ResultsScreen
+              candidateId={candidateId}
+              filename={uploadedFilename}
+              profile={results.profile}
+              improvements={results.improvements}
+              onStartOver={reset}
+            />
+          </div>
+        )}
       </main>
     </div>
   );

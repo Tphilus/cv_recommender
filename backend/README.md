@@ -33,6 +33,17 @@ CVs are stored under the `cvs/` prefix with a UUID-prefixed key. Previews are se
 through the backend proxy endpoint (`GET /cv/{candidate_id}/preview-file`), which
 streams the file bytes from S3 behind the existing `x-api-key` auth.
 
+### LLM call tracing: LangSmith
+
+Every LangChain call in [`app/services/llm_service.py`](app/services/llm_service.py)
+(extraction, improvements, job matching) can be traced in
+[LangSmith](https://smith.langchain.com). Set `LANGSMITH_TRACING=true`,
+`LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `.env`. The `langsmith` SDK reads its
+config from `os.environ`, not from our `Settings` object, so
+[`app/core/config.py`](app/core/config.py) mirrors those four values across at import
+time — no other code needs to know tracing exists. Leave `LANGSMITH_TRACING=false` (the
+default) to disable it entirely.
+
 ## Running tests
 
 ```bash

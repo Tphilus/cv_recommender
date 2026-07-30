@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getAnalysis, getCandidate } from "../api/client";
-import type { ExtractedCV, ImprovementReport } from "../types/api";
+// import { getAnalysis, getCandidate } from "../api/client";
+import { getAnalysis, getCandidate } from "@/api/client";
+import type { ExtractedCV, ImprovementReport } from "@/types/api";
+// import type { ExtractedCV, ImprovementReport } from "../types/api";
 
 const POLL_INTERVAL_MS = 2000;
 
@@ -18,7 +20,10 @@ interface UsePollAnalysisReturn {
 
 export function usePollAnalysis(): UsePollAnalysisReturn {
   const [status, setStatus] = useState<PollStatus>("idle");
-  const [results, setResults] = useState<{ profile: ExtractedCV; improvements: ImprovementReport } | null>(null);
+  const [results, setResults] = useState<{
+    profile: ExtractedCV;
+    improvements: ImprovementReport;
+  } | null>(null);
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const pollTimer = useRef<number | undefined>(undefined);
 
@@ -53,12 +58,19 @@ export function usePollAnalysis(): UsePollAnalysisReturn {
         const candidate = await getCandidate(candidateId);
         if (candidate.status === "analyzed") {
           const analysis = await getAnalysis(candidateId);
+
           if (analysis.extracted_profile && analysis.improvements) {
-            setResults({ profile: analysis.extracted_profile, improvements: analysis.improvements });
+            setResults({
+              profile: analysis.extracted_profile,
+              improvements: analysis.improvements,
+            });
             setStatus("done");
           }
         } else if (candidate.status === "failed") {
-          reportError("We couldn't analyze this CV. Please try a different file.", candidate.error_detail ?? undefined);
+          reportError(
+            "We couldn't analyze this CV. Please try a different file.",
+            candidate.error_detail ?? undefined,
+          );
         }
       } catch {
         reportError("Lost connection to the backend while checking status.");
