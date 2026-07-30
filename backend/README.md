@@ -1,6 +1,6 @@
 # CV Recommender API
 
-FastAPI backend that accepts a candidate's CV (PDF/DOCX/image), extracts structured
+FastAPI backend that accepts a candidate's CV (PDF/DOCX/TXT/image), extracts structured
 data via a multimodal LLM (OpenAI GPT-4o or Gemini 1.5 Pro), suggests concrete CV
 improvements, and recommends jobs with real apply/learning links.
 
@@ -24,9 +24,14 @@ the `<db_password>` placeholder Atlas gives you), then verify with:
 curl http://localhost:8000/health/db
 ```
 
-PDF-to-image conversion requires the `poppler` binary on PATH (`pdf2image` shells
-out to it). On Windows, install via [poppler-windows](https://github.com/oschwartz10612/poppler-windows)
-and add its `bin/` to PATH; on the Docker image it's installed via `apt`.
+### CV file storage: AWS S3
+
+Uploaded CVs are written to S3 via
+[`app/services/s3_service.py`](app/services/s3_service.py). Set `AWS_S3_ACCESS_KEY_ID`,
+`AWS_S3_SECRET_ACCESS_KEY`, `AWS_S3_REGION`, and `AWS_STORAGE_BUCKET_NAME` in `.env`.
+CVs are stored under the `cvs/` prefix with a UUID-prefixed key. Previews are served
+through the backend proxy endpoint (`GET /cv/{candidate_id}/preview-file`), which
+streams the file bytes from S3 behind the existing `x-api-key` auth.
 
 ## Running tests
 

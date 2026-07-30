@@ -1,6 +1,6 @@
 # cv_recommender
 
-A backend service that accepts a candidate's CV (PDF/DOCX/image), extracts structured
+A backend service that accepts a candidate's CV (PDF/DOCX/TXT/image), extracts structured
 data using a multimodal LLM (OpenAI GPT-4o / Google Gemini), suggests concrete CV
 improvements, and recommends relevant jobs with real apply/learning links.
 

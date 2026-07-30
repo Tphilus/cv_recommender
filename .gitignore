@@ -1,6 +1,7 @@
 .env
 backend/.env
 backend/venv/
+backend/uploads/
 __pycache__/
 .pytest_cache/
 .coverage

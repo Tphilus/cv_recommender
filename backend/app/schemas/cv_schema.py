@@ -29,3 +29,18 @@ class ExtractedCV(BaseModel):
     experience: List[Experience]
     education: List[Education]
     certifications: List[str] = Field(default_factory=list)
+
+
+class _RawSkillGap(BaseModel):
+    skill: str
+
+
+class _RawJobMatch(BaseModel):
+    job_title: str
+    match_score: int
+    reasoning: str
+    skill_gaps: List[_RawSkillGap] = []
+
+
+class _RawJobMatchReport(BaseModel):
+    matches: List[_RawJobMatch]

@@ -36,11 +36,13 @@ async def get_candidate(db: AsyncIOMotorDatabase, candidate_id: str) -> Optional
     return await db[CANDIDATES].find_one({"_id": oid})
 
 
-async def update_candidate_status(db: AsyncIOMotorDatabase, candidate_id: str, status: str) -> None:
+async def update_candidate_status(
+    db: AsyncIOMotorDatabase, candidate_id: str, status: str, error_detail: Optional[str] = None
+) -> None:
     oid = _to_object_id(candidate_id)
     if oid is None:
         return
-    await db[CANDIDATES].update_one({"_id": oid}, {"$set": {"status": status}})
+    await db[CANDIDATES].update_one({"_id": oid}, {"$set": {"status": status, "error_detail": error_detail}})
 
 
 async def save_analysis(

@@ -106,3 +106,9 @@ def test_get_llm_gemini_provider():
     with patch("app.services.llm_service.ChatGoogleGenerativeAI") as mock_gemini:
         llm_service.get_llm("gemini")
         mock_gemini.assert_called_once()
+
+
+def test_get_llm_groq_provider():
+    with patch("app.services.llm_service.ChatGroq") as mock_groq:
+        llm_service.get_llm("groq")
+        mock_groq.assert_called_once()

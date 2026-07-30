@@ -11,12 +11,16 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
-    DEFAULT_LLM_PROVIDER: str = "openai"
+    GROQ_API_KEY: str = ""
+    DEFAULT_LLM_PROVIDER: str = ""
 
     API_KEY: str = "dev-local-api-key"
 
-    AWS_REGION: str = "eu-west-1"
-    S3_BUCKET: str = "cv-recommender-uploads-dev"
+    # AWS S3 — active storage backend (app/services/s3_service.py)
+    AWS_S3_ACCESS_KEY_ID: str = ""
+    AWS_S3_SECRET_ACCESS_KEY: str = ""
+    AWS_S3_REGION: str = "eu-north-1"
+    AWS_STORAGE_BUCKET_NAME: str = ""
 
 
 settings = Settings()

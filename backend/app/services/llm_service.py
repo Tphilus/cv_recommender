@@ -1,14 +1,14 @@
 import base64
-from typing import List, Optional
+from typing import List
 
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
 
 from app.core.config import settings
-from app.schemas.cv_schema import ExtractedCV
+from app.schemas.cv_schema import ExtractedCV, _RawJobMatch, _RawJobMatchReport, _RawSkillGap
 from app.schemas.improvement_schema import ImprovementReport
 from app.schemas.job_match_schema import JobMatch, JobMatchReport, SkillGap
 from app.services.job_search_service import build_learning_link, build_search_links
@@ -16,13 +16,24 @@ from app.services.job_search_service import build_learning_link, build_search_li
 
 def get_llm(provider: str = settings.DEFAULT_LLM_PROVIDER):
     if provider == "gemini":
-        return ChatGoogleGenerativeAI(model="gemini-1.5-pro", api_key=settings.GEMINI_API_KEY)
+        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", api_key=settings.GEMINI_API_KEY)
+    if provider == "groq":
+        return ChatGroq(model="llama-3.3-70b-versatile", api_key=settings.GROQ_API_KEY, temperature=0)
     return ChatOpenAI(model="gpt-4o", api_key=settings.OPENAI_API_KEY, temperature=0)
+
+
+# None of the models on this Groq account support image input (confirmed against
+# /openai/v1/models — no llama-*-vision / llama-4-scout etc. available), so a
+# provider without vision support can't be used for the multimodal extraction path.
+VISION_CAPABLE_PROVIDERS = {"openai", "gemini"}
+VISION_FALLBACK_PROVIDER = "openai"
 
 
 def extract_cv_from_file(file_bytes: bytes, mime_type: str, provider: str = settings.DEFAULT_LLM_PROVIDER) -> ExtractedCV:
     """Multimodal call: sends the raw CV (a rendered page image) to the LLM and forces
     structured output validated against the ExtractedCV Pydantic schema."""
+    if provider not in VISION_CAPABLE_PROVIDERS:
+        provider = VISION_FALLBACK_PROVIDER
     llm = get_llm(provider).with_structured_output(ExtractedCV)
     b64 = base64.b64encode(file_bytes).decode()
     message = HumanMessage(content=[
@@ -53,21 +64,6 @@ def generate_improvements(cv: ExtractedCV, provider: str = settings.DEFAULT_LLM_
     ])
     chain = prompt | llm
     return chain.invoke({"cv_json": cv.model_dump_json()})
-
-
-class _RawSkillGap(BaseModel):
-    skill: str
-
-
-class _RawJobMatch(BaseModel):
-    job_title: str
-    match_score: int
-    reasoning: str
-    skill_gaps: List[_RawSkillGap] = []
-
-
-class _RawJobMatchReport(BaseModel):
-    matches: List[_RawJobMatch]
 
 
 def match_jobs(cv: ExtractedCV, provider: str = settings.DEFAULT_LLM_PROVIDER, location: str = "") -> JobMatchReport:

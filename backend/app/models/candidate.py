@@ -14,3 +14,4 @@ class Candidate(BaseModel):
     original_filename: str
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: str = "processing"  # processing | analyzed | failed
+    error_detail: Optional[str] = None
