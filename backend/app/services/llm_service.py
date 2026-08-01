@@ -31,7 +31,9 @@ def get_llm(provider: str = settings.DEFAULT_LLM_PROVIDER):
             task="conversational",
             huggingfacehub_api_token=settings.HUGGING_FACE_API_KEY,
             max_new_tokens=2048,
-            timeout=90,
+            timeout=120,  # HF's free-tier serverless backend occasionally cold-starts
+                          # slowly; 90s wasn't always enough headroom. Real reliability
+                          # comes from the retry wrapper in _structured_llm, not this.
         )
         return ChatHuggingFace(llm=endpoint)
     return ChatGroq(model="llama-3.3-70b-versatile", api_key=settings.GROQ_API_KEY, temperature=0)
@@ -58,8 +60,14 @@ def _structured_llm(provider: str, schema: type[BaseModel]):
         # AFTER with_structured_output — binding it before causes the same empty-output
         # failure (confirmed by testing both orders against the live API).
         structured = structured.bind(extra_body={"chat_template_kwargs": {"enable_thinking": False}})
-        return structured | schema.model_validate
-    return llm.with_structured_output(schema)
+        chain = structured | schema.model_validate
+    else:
+        chain = llm.with_structured_output(schema)
+
+    # HF's free-tier serverless backend occasionally times out or cold-starts slowly
+    # (httpx.ReadTimeout) — retry with backoff instead of failing the whole candidate
+    # over one slow response. Cheap to apply to every provider, not just huggingface.
+    return chain.with_retry(stop_after_attempt=3, wait_exponential_jitter=True)
 
 
 
