@@ -1,14 +1,3 @@
-import type { RecentAnalysis } from "@/utils/recentAnalyses";
-
-export interface SidebarProps {
-  recents: RecentAnalysis[];
-  activeCandidateId: string | null;
-  onNewAnalysis: () => void;
-  onSelectRecent: (candidateId: string) => void;
-  onDeleteRecent: (candidateId: string) => void;
-  onSearchClick: () => void;
-}
-
 export interface Experience {
   company: string;
   title: string;
@@ -93,4 +82,5 @@ export interface AnalysisResponse {
   status: CandidateStatus;
   extracted_profile?: ExtractedCV;
   improvements?: ImprovementReport;
+  job_matches?: JobMatchReport;
 }

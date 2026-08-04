@@ -101,6 +101,22 @@ async def get_cv_preview_file(candidate_id: str, db: AsyncIOMotorDatabase = Depe
     return Response(content=file_bytes, media_type=mime_type)
 
 
+@router.delete("/{candidate_id}", dependencies=[Depends(require_api_key)], status_code=status.HTTP_204_NO_CONTENT)
+async def delete_candidate(candidate_id: str, db: AsyncIOMotorDatabase = Depends(get_db)):
+    candidate = await mongo_service.get_candidate(db, candidate_id)
+    if candidate is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+    try:
+        s3_service.delete_file(candidate["cv_s3_key"])
+    except Exception:
+        # Best-effort: don't block deleting the DB records over a storage hiccup
+        # (e.g. an S3 permissions gap) — the user asked to remove this candidate,
+        # and an orphaned S3 object is a much smaller problem than a stuck "delete".
+        logger.exception("Failed to delete stored file for candidate %s (continuing with DB cleanup)", candidate_id)
+    await mongo_service.delete_candidate(db, candidate_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 async def run_analysis_pipeline(candidate_id: str, raw_bytes: bytes, mime_type: str, db: AsyncIOMotorDatabase):
     try:
         if mime_type in DOCX_MIME_TYPES:

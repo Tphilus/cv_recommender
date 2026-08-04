@@ -50,6 +50,7 @@ def test_extract_cv_from_file_invokes_multimodal_message(mock_get_llm):
     expected_cv = _sample_cv()
     mock_llm = MagicMock()
     mock_llm.with_structured_output.return_value = mock_llm
+    mock_llm.with_retry.return_value = mock_llm
     mock_llm.invoke.return_value = expected_cv
     mock_get_llm.return_value = mock_llm
 
@@ -112,3 +113,10 @@ def test_get_llm_groq_provider():
     with patch("app.services.llm_service.ChatGroq") as mock_groq:
         llm_service.get_llm("groq")
         mock_groq.assert_called_once()
+
+
+def test_get_llm_openrouter_provider():
+    with patch("app.services.llm_service.ChatOpenAI") as mock_openai:
+        llm_service.get_llm("openrouter")
+        mock_openai.assert_called_once()
+        assert mock_openai.call_args.kwargs["base_url"] == "https://openrouter.ai/api/v1"

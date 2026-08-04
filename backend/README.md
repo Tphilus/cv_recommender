@@ -6,12 +6,14 @@ apply/learning links.
 
 ### LLM provider
 
-[`app/services/llm_service.py`](app/services/llm_service.py) supports four
-interchangeable providers via `get_llm(provider)`: `huggingface` (default —
-Hugging Face's `Qwen/Qwen3.5-9B`, free-tier), `groq`, `gemini`, and `openai` (the
-multimodal/vision fallback for image uploads and scanned PDFs — see
-`VISION_CAPABLE_PROVIDERS`). Switch the active default via `DEFAULT_LLM_PROVIDER` in
-`.env`; all four stay fully implemented and working regardless of which is active.
+[`app/services/llm_service.py`](app/services/llm_service.py) supports five
+interchangeable providers via `get_llm(provider)`: `openrouter` (default —
+OpenAI-API-compatible gateway, model set via `OPENROUTER_DEFAULT_MODEL`,
+`openai/gpt-4o-mini` by default), `huggingface` (Hugging Face's `Qwen/Qwen3.5-9B`,
+free-tier), `groq`, `gemini`, and `openai` (the multimodal/vision fallback for image
+uploads and scanned PDFs — see `VISION_CAPABLE_PROVIDERS`). Switch the active default
+via `DEFAULT_LLM_PROVIDER` in `.env`; all five stay fully implemented and working
+regardless of which is active.
 
 Qwen3.5-9B is a "thinking" model — its hidden reasoning trace is disabled via
 `chat_template_kwargs.enable_thinking=False` (bound *after* `with_structured_output`,

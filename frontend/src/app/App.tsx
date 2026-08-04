@@ -1,21 +1,21 @@
 import axios from "axios";
 import { parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
-import { uploadCv } from "./api/client";
-import Sidebar from "./components/layout/Sidebar";
-import ResultsScreen from "./components/results/ResultsScreen";
-import SearchPage from "./components/search/SearchPage";
-import LoadingScreen from "./components/ui/LoadingScreen";
-import AnalyzingScreen from "./components/upload/AnalyzingScreen";
-import UploadScreen from "./components/upload/UploadScreen";
-// import { usePollAnalysis } from "./hooks/usePollAnalysis";
-import { usePollAnalysis } from "./components/ui/usePollAnalysis";
+import { toast } from "sonner";
+import { deleteCandidate, uploadCv } from "@/api/client";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import AnalyzingScreen from "@/features/cv-analysis/components/AnalyzingScreen";
+import ResultsScreen from "@/features/cv-analysis/components/results/ResultsScreen";
+import UploadScreen from "@/features/cv-analysis/components/upload/UploadScreen";
+import { usePollAnalysis } from "@/features/cv-analysis/hooks/usePollAnalysis";
+import Sidebar from "@/features/history/components/Sidebar";
+import SearchPage from "@/features/history/components/SearchPage";
 import {
   addRecentAnalysis,
   getRecentAnalyses,
   removeRecentAnalysis,
   type RecentAnalysis,
-} from "./utils/recentAnalyses";
+} from "@/features/history/storage/recentAnalyses";
 
 export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -34,9 +34,14 @@ export default function App() {
 
   // A failed poll (stale/deleted candidate, network error) must also clear the
   // URL — otherwise the poisoned ?candidate=<id> re-triggers the same error on
-  // every subsequent refresh.
-  const { status, results, startPolling, clearResults, reportError } =
-    usePollAnalysis(() => void setSession({ candidate: "", file: "" }));
+  // every subsequent refresh. A confirmed-deleted candidate (404) must also be
+  // dropped from the localStorage "recents" list, or that sidebar entry shows
+  // the same error every time it's clicked, forever.
+  const { status, results, startPolling, loadStoredAnalysis, clearResults, reportError } =
+    usePollAnalysis({
+      onClearSession: () => void setSession({ candidate: "", file: "" }),
+      onCandidateNotFound: (id) => setRecents(removeRecentAnalysis(id)),
+    });
 
   // Restore session from URL on first load
   useEffect(() => {
@@ -75,8 +80,9 @@ export default function App() {
 
   function loadRecent(id: string) {
     const recent = recents.find((r) => r.candidateId === id);
+    isNewUpload.current = false;
     void setSession({ candidate: id, file: recent?.filename ?? "CV" });
-    startPolling(id);
+    void loadStoredAnalysis(id);
     setIsSearchOpen(false);
   }
 
@@ -88,6 +94,14 @@ export default function App() {
 
   function deleteRecent(id: string) {
     setRecents(removeRecentAnalysis(id));
+    if (candidateId === id) {
+      reset();
+    }
+    // Removing from localStorage is immediate for a snappy UI; the DB/S3 cleanup
+    // happens in the background so a slow or failed request doesn't block it.
+    void deleteCandidate(id).catch(() => {
+      toast.error("Removed from your recents, but couldn't delete it from the server.");
+    });
   }
 
   // Cmd+K / Ctrl+K jumps to the search page.
@@ -127,7 +141,7 @@ export default function App() {
           <UploadScreen onUpload={handleUpload} disabled={isUploading} />
         )}
 
-        {status === "polling" &&
+        {(status === "polling" || status === "loading") &&
           (isNewUpload.current ? (
             <AnalyzingScreen filename={uploadedFilename || "your CV"} />
           ) : (
@@ -141,6 +155,7 @@ export default function App() {
               filename={uploadedFilename}
               profile={results.profile}
               improvements={results.improvements}
+              jobs={results.jobs}
               onStartOver={reset}
             />
           </div>

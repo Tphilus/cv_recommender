@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { ExtractedCV } from "../../types/api";
+import type { ExtractedCV } from "@/api/types";
 
 export default function ExtractedProfileTab({ profile }: { profile: ExtractedCV }) {
   return (

@@ -24,4 +24,8 @@ async def get_analysis(candidate_id: str, db: AsyncIOMotorDatabase = Depends(get
         "status": candidate["status"],
         "extracted_profile": analysis["extracted_profile"],
         "improvements": analysis["improvements"],
+        # Return the complete persisted snapshot. The frontend can restore a
+        # recent analysis with this single database read; no LLM work is
+        # started by this endpoint.
+        "job_matches": analysis["job_matches"],
     }

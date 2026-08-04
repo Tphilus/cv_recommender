@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { SidebarProps } from "@/types/api";
+import type { RecentAnalysis } from "@/features/history/storage/recentAnalyses";
 import { useState } from "react";
 import {
   LuChevronsUpDown,
@@ -11,6 +11,15 @@ import {
   LuSlidersHorizontal,
   LuTrash2,
 } from "react-icons/lu";
+
+interface SidebarProps {
+  recents: RecentAnalysis[];
+  activeCandidateId: string | null;
+  onNewAnalysis: () => void;
+  onSelectRecent: (candidateId: string) => void;
+  onDeleteRecent: (candidateId: string) => void;
+  onSearchClick: () => void;
+}
 
 export default function Sidebar({
   recents,

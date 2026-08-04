@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     HUGGING_FACE_API_KEY: str = ""
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_DEFAULT_MODEL: str = "openai/gpt-4o-mini"
+    OPENROUTER_SITE_URL: str = ""
+    OPENROUTER_SITE_NAME: str = ""
     DEFAULT_LLM_PROVIDER: str = ""
 
     API_KEY: str = "dev-local-api-key"
@@ -34,10 +38,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# The langsmith SDK reads its config directly from os.environ, not from our Settings
-# object, so it has to be mirrored across explicitly. Doing this once here (config.py
-# is imported before any LangChain code runs) enables tracing app-wide with no changes
-# needed in llm_service.py.
 if settings.LANGSMITH_TRACING:
     os.environ["LANGSMITH_TRACING"] = "true"
     os.environ["LANGSMITH_ENDPOINT"] = settings.LANGSMITH_ENDPOINT

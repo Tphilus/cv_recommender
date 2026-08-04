@@ -1,32 +1,49 @@
-# React + TypeScript + Vite
+# Elevate frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React and TypeScript client for uploading CVs, following analysis progress, and
+restoring persisted results.
 
-Currently, two official plugins are available:
+## Source structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```text
+src/
+|-- api/                     # HTTP client and backend response contracts
+|-- app/                     # Application composition and top-level state
+|-- components/ui/           # Reusable, feature-agnostic UI primitives
+|-- features/
+|   |-- cv-analysis/         # Upload, preview, polling, and result screens
+|   `-- history/             # Recent-analysis navigation and local storage
+|-- lib/                     # Generic utilities
+|-- styles/                  # Global styles and design tokens
+|-- main.tsx                 # Browser entry point and global providers
+`-- vite-env.d.ts            # Vite environment typings
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Dependency rules
+
+- `app` may compose features, shared UI, and API modules.
+- A feature owns its components, hooks, and feature-specific storage.
+- Features import shared modules through the `@/` alias.
+- `api`, `components/ui`, and `lib` must not import from features.
+- Import concrete modules directly; avoid broad barrel exports.
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+Create a `.env` file with:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_API_KEY=the-same-value-as-the-backend-api-key
+```
+
+## Validation
+
+```bash
+npm run build
+npm run lint
+```

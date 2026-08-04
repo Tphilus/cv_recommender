@@ -136,3 +136,46 @@ def test_get_cv_preview_file_unknown_candidate_404(client, api_key_headers):
 def test_get_cv_preview_file_without_api_key_rejected(client):
     response = client.get("/cv/000000000000000000000000/preview-file")
     assert response.status_code == 422  # missing required x-api-key header
+
+
+@patch("app.services.s3_service.upload_file", return_value="cvs/fake-key.pdf")
+@patch("app.services.s3_service.delete_file")
+def test_delete_candidate_removes_candidate_and_file(mock_delete, mock_upload, client, api_key_headers):
+    upload_response = client.post(
+        "/cv/upload",
+        headers=api_key_headers,
+        files={"file": ("sample_cv.pdf", b"fake-pdf-bytes", "application/pdf")},
+    )
+    candidate_id = upload_response.json()["candidate_id"]
+
+    response = client.delete(f"/cv/{candidate_id}", headers=api_key_headers)
+
+    assert response.status_code == 204
+    mock_delete.assert_called_once_with("cvs/fake-key.pdf")
+    assert client.get(f"/cv/{candidate_id}", headers=api_key_headers).status_code == 404
+
+
+@patch("app.services.s3_service.upload_file", return_value="cvs/fake-key.pdf")
+@patch("app.services.s3_service.delete_file", side_effect=RuntimeError("AccessDenied"))
+def test_delete_candidate_still_deletes_db_record_if_s3_delete_fails(mock_delete, mock_upload, client, api_key_headers):
+    upload_response = client.post(
+        "/cv/upload",
+        headers=api_key_headers,
+        files={"file": ("sample_cv.pdf", b"fake-pdf-bytes", "application/pdf")},
+    )
+    candidate_id = upload_response.json()["candidate_id"]
+
+    response = client.delete(f"/cv/{candidate_id}", headers=api_key_headers)
+
+    assert response.status_code == 204
+    assert client.get(f"/cv/{candidate_id}", headers=api_key_headers).status_code == 404
+
+
+def test_delete_candidate_not_found(client, api_key_headers):
+    response = client.delete("/cv/000000000000000000000000", headers=api_key_headers)
+    assert response.status_code == 404
+
+
+def test_delete_candidate_without_api_key_rejected(client):
+    response = client.delete("/cv/000000000000000000000000")
+    assert response.status_code == 422  # missing required x-api-key header

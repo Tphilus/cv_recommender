@@ -34,6 +34,7 @@ async def test_get_analysis_after_pipeline_completes(client, api_key_headers, mo
     assert body["status"] == "analyzed"
     assert body["extracted_profile"]["full_name"] == "Ama Owusu"
     assert body["improvements"]["overall_score"] == 82
+    assert body["job_matches"] == {"matches": []}
 
 
 def test_get_analysis_unknown_candidate_404(client, api_key_headers):

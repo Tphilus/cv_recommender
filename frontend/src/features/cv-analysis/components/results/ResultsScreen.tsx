@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { toast } from "sonner";
-import { fetchCvPreviewBlob } from "../../api/client";
-import type { ExtractedCV, ImprovementReport } from "../../types/api";
+import { fetchCvPreviewBlob } from "@/api/client";
+import type { ExtractedCV, ImprovementReport, JobMatchReport } from "@/api/types";
 import FilePreviewDialog from "../upload/FilePreviewDialog";
 import ExtractedProfileTab from "./ExtractedProfileTab";
 import ImprovementReportTab from "./ImprovementReportTab";
@@ -14,6 +14,7 @@ interface ResultsScreenProps {
   filename: string;
   profile: ExtractedCV;
   improvements: ImprovementReport;
+  jobs: JobMatchReport;
   onStartOver: () => void;
 }
 
@@ -22,6 +23,7 @@ export default function ResultsScreen({
   filename,
   profile,
   improvements,
+  jobs,
   onStartOver,
 }: ResultsScreenProps) {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
@@ -72,7 +74,7 @@ export default function ResultsScreen({
         <ImprovementReportTab report={improvements} />
       </TabsContent>
       <TabsContent value="jobs">
-        <JobMatchesTab candidateId={candidateId} />
+        <JobMatchesTab report={jobs} />
       </TabsContent>
 
       <FilePreviewDialog

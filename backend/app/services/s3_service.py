@@ -28,3 +28,7 @@ def get_presigned_url(key: str, expires_in: int = 3600) -> str:
 
 def download_file(key: str) -> bytes:
     return s3.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)["Body"].read()
+
+
+def delete_file(key: str) -> None:
+    s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)

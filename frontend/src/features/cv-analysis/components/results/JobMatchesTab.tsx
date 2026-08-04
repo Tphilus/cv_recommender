@@ -1,39 +1,7 @@
-import { useEffect, useState } from "react";
-import { LuCircleAlert } from "react-icons/lu";
-import { getJobRecommendations } from "../../api/client";
-import type { JobMatch } from "../../types/api";
-import JobMatchSkeleton from "../skeletons/JobMatchSkeleton";
+import type { JobMatchReport } from "@/api/types";
 
-export default function JobMatchesTab({ candidateId }: { candidateId: string }) {
-  const [matches, setMatches] = useState<JobMatch[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getJobRecommendations(candidateId)
-      .then((report) => {
-        if (!cancelled) setMatches(report.matches);
-      })
-      .catch(() => {
-        if (!cancelled) setError("Could not load job recommendations.");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [candidateId]);
-
-  if (error) {
-    return (
-      <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-        <LuCircleAlert size={16} />
-        {error}
-      </div>
-    );
-  }
-
-  if (matches === null) {
-    return <JobMatchSkeleton />;
-  }
+export default function JobMatchesTab({ report }: { report: JobMatchReport }) {
+  const matches = report.matches;
 
   if (matches.length === 0) {
     return <p className="text-sm text-muted-foreground">No job matches found.</p>;

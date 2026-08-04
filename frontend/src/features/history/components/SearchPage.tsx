@@ -1,6 +1,6 @@
 import { LuSearch, LuX, LuMessageCircle } from "react-icons/lu";
 import { Command as CommandPrimitive } from "cmdk";
-import type { RecentAnalysis } from "../../utils/recentAnalyses";
+import type { RecentAnalysis } from "@/features/history/storage/recentAnalyses";
 import { useEffect } from "react";
 
 interface SearchPageProps {

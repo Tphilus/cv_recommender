@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { AnalysisResponse, Candidate, JobMatchReport, UploadResponse } from "../types/api";
+import type { AnalysisResponse, Candidate, JobMatchReport, UploadResponse } from "./types";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -30,6 +30,10 @@ export async function getJobRecommendations(candidateId: string): Promise<JobMat
     candidate_id: candidateId,
   });
   return data;
+}
+
+export async function deleteCandidate(candidateId: string): Promise<void> {
+  await api.delete(`/cv/${candidateId}`);
 }
 
 export async function fetchCvPreviewBlob(candidateId: string): Promise<Blob> {

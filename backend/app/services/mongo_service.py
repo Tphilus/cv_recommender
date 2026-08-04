@@ -73,3 +73,14 @@ async def save_analysis(
 
 async def get_analysis(db: AsyncIOMotorDatabase, candidate_id: str) -> Optional[dict]:
     return await db[ANALYSES].find_one({"candidate_id": candidate_id}, sort=[("created_at", -1)])
+
+
+async def delete_candidate(db: AsyncIOMotorDatabase, candidate_id: str) -> bool:
+    """Deletes the candidate document and every analysis tied to it. Returns
+    whether a candidate document was actually found and deleted."""
+    oid = _to_object_id(candidate_id)
+    if oid is None:
+        return False
+    await db[ANALYSES].delete_many({"candidate_id": candidate_id})
+    result = await db[CANDIDATES].delete_one({"_id": oid})
+    return result.deleted_count > 0

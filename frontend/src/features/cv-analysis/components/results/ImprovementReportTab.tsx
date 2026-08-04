@@ -1,5 +1,5 @@
-import type { ImprovementReport } from "../../types/api";
-import ScoreRing from "../../ui/ScoreRing";
+import ScoreRing from "@/components/ui/ScoreRing";
+import type { ImprovementReport } from "@/api/types";
 
 export default function ImprovementReportTab({ report }: { report: ImprovementReport }) {
   return (

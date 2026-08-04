@@ -19,8 +19,6 @@ from app.services.job_search_service import build_learning_link, build_search_li
 def get_llm(provider: str = settings.DEFAULT_LLM_PROVIDER):
     if provider == "gemini":
         return ChatGoogleGenerativeAI(model="gemini-2.0-flash", api_key=settings.GEMINI_API_KEY)
-    # if provider == "groq":
-    #     return ChatGroq(model="llama-3.3-70b-versatile", api_key=settings.GROQ_API_KEY, temperature=0)
     if provider == "openai":
         return ChatOpenAI(model="gpt-4o", api_key=settings.OPENAI_API_KEY, temperature=0)
         
@@ -31,49 +29,41 @@ def get_llm(provider: str = settings.DEFAULT_LLM_PROVIDER):
             task="conversational",
             huggingfacehub_api_token=settings.HUGGING_FACE_API_KEY,
             max_new_tokens=2048,
-            timeout=120,  # HF's free-tier serverless backend occasionally cold-starts
-                          # slowly; 90s wasn't always enough headroom. Real reliability
-                          # comes from the retry wrapper in _structured_llm, not this.
+            timeout=120,
         )
         return ChatHuggingFace(llm=endpoint)
+    if provider == "openrouter":
+        # OpenRouter is OpenAI-API-compatible — same ChatOpenAI client, just pointed
+        # at OpenRouter's base_url with its own key. HTTP-Referer/X-Title are the
+        # headers OpenRouter uses to attribute usage on your account dashboard.
+        return ChatOpenAI(
+            model=settings.OPENROUTER_DEFAULT_MODEL,
+            api_key=settings.OPENROUTER_API_KEY,
+            base_url="https://openrouter.ai/api/v1",
+            temperature=0,
+            default_headers={
+                "HTTP-Referer": settings.OPENROUTER_SITE_URL,
+                "X-Title": settings.OPENROUTER_SITE_NAME,
+            },
+        )
     return ChatGroq(model="llama-3.3-70b-versatile", api_key=settings.GROQ_API_KEY, temperature=0)
  
 
 
 def _structured_llm(provider: str, schema: type[BaseModel]):
-    """Returns a runnable that outputs a validated instance of `schema`.
-
-    ChatHuggingFace can't do this the way ChatOpenAI/ChatGroq/ChatGoogleGenerativeAI
-    can: its default with_structured_output method ('function_calling') raises
-    NotImplementedError for Pydantic schemas outright, and its 'json_schema'/'json_mode'
-    methods only ever return a plain dict, never the Pydantic object. So for huggingface
-    we ask for a JSON-schema-constrained dict and validate it into `schema` ourselves —
-    every other provider already returns a validated instance directly.
-    """
     llm = get_llm(provider)
     if provider == "huggingface":
         structured = llm.with_structured_output(schema, method="json_schema")
-        # Qwen3.5 is a "thinking" model — left alone, it burns most (sometimes all) of
-        # the token budget on a hidden reasoning trace before the real JSON answer even
-        # starts, which was causing empty/truncated output and 100s+ latency per call.
-        # Disabling it via the chat template cuts that down to ~2-6s. This must be bound
-        # AFTER with_structured_output — binding it before causes the same empty-output
-        # failure (confirmed by testing both orders against the live API).
         structured = structured.bind(extra_body={"chat_template_kwargs": {"enable_thinking": False}})
         chain = structured | schema.model_validate
     else:
         chain = llm.with_structured_output(schema)
-
-    # HF's free-tier serverless backend occasionally times out or cold-starts slowly
-    # (httpx.ReadTimeout) — retry with backoff instead of failing the whole candidate
-    # over one slow response. Cheap to apply to every provider, not just huggingface.
     return chain.with_retry(stop_after_attempt=3, wait_exponential_jitter=True)
 
 
 
-VISION_CAPABLE_PROVIDERS = {"openai", "gemini"}
-# VISION_FALLBACK_PROVIDER = "openai"
-VISION_FALLBACK_PROVIDER = "groq"
+VISION_CAPABLE_PROVIDERS = {"openai", "gemini", "openrouter"}
+VISION_FALLBACK_PROVIDER = "openrouter"
 
 
 
