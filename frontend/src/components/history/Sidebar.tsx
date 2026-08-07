@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { RecentAnalysis } from "@/features/history/storage/recentAnalyses";
+import type { RecentAnalysis } from "@/lib/hooks/useRecentCandidatesQuery";
 import { useState } from "react";
 import {
   LuChevronsUpDown,
