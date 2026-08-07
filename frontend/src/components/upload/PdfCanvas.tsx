@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-// ─── Single page canvas ─────────────────────────────────────────────────────
+// Single page canvas 
 
 interface PdfCanvasProps {
   /** A File or Blob containing the PDF bytes */
@@ -78,7 +78,7 @@ export function PdfPageCanvas({ file, page = 1, className, scale = 2 }: PdfCanva
   );
 }
 
-// ─── All-pages viewer ────────────────────────────────────────────────────────
+// All-pages viewer 
 
 interface PdfAllPagesProps {
   file: File | Blob;

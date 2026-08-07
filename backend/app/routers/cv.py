@@ -72,6 +72,14 @@ async def upload_cv(
     return {"candidate_id": candidate_id, "status": "processing"}
 
 
+@router.get("", dependencies=[Depends(require_api_key)])
+async def list_candidates(limit: int = 50, db: AsyncIOMotorDatabase = Depends(get_db)):
+    candidates = await mongo_service.list_candidates(db, limit=limit)
+    for candidate in candidates:
+        candidate["_id"] = str(candidate["_id"])
+    return candidates
+
+
 @router.get("/{candidate_id}", dependencies=[Depends(require_api_key)])
 async def get_candidate(candidate_id: str, db: AsyncIOMotorDatabase = Depends(get_db)):
     candidate = await mongo_service.get_candidate(db, candidate_id)
