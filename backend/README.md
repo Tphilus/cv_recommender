@@ -77,7 +77,7 @@ LLM calls mocked. Coverage target is ≥80%, enforced via `pytest.ini`.
 | POST   | `/cv/upload`                  | Upload CV, kicks off async analysis       | API Key |
 | GET    | `/cv/{candidate_id}`          | Candidate metadata + status               | API Key |
 | GET    | `/cv/{candidate_id}/analysis` | Extracted profile + improvement report    | API Key |
-| POST   | `/jobs/recommendations`       | `{candidate_id}` → job matches with links | API Key |
+| GET    | `/jobs/recommendations/{candidate_id}` | Job matches with apply links     | API Key |
 | GET    | `/health`                     | Liveness/readiness probe                  | none    |
 | GET    | `/health/db`                  | Manual MongoDB reachability check         | none    |
 
