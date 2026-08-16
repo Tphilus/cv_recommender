@@ -33,13 +33,6 @@ def get_llm(provider: str = settings.DEFAULT_LLM_PROVIDER):
         )
         return ChatHuggingFace(llm=endpoint)
     if provider == "openrouter":
-        # OpenRouter is OpenAI-API-compatible — same ChatOpenAI client, just pointed
-        # at OpenRouter's base_url with its own key. HTTP-Referer/X-Title are the
-        # headers OpenRouter uses to attribute usage on your account dashboard.
-        # max_tokens is capped explicitly: without it, OpenRouter's credit
-        # pre-check assumes the model's full output ceiling (16384 for this model)
-        # might be used and rejects the request if your balance can't cover that
-        # worst case — even though our structured JSON outputs never come close.
         return ChatOpenAI(
             model=settings.OPENROUTER_DEFAULT_MODEL,
             api_key=settings.OPENROUTER_API_KEY,
