@@ -1,9 +1,10 @@
 import io
+import mimetypes
 
-IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
-DOCX_MIME_TYPES = {"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
-PDF_MIME_TYPES = {"application/pdf"}
-TEXT_MIME_TYPES = {"text/plain"}
+IMAGE_MIME_TYPES = {mimetypes.types_map[ext] for ext in (".png", ".jpg", ".jpeg", ".webp")}
+DOCX_MIME_TYPES = {mimetypes.types_map[".docx"]}
+PDF_MIME_TYPES = {mimetypes.types_map[".pdf"]}
+TEXT_MIME_TYPES = {mimetypes.types_map[".txt"]}
 
 
 def to_image_bytes(raw_bytes: bytes, mime_type: str) -> tuple[bytes, str]:
