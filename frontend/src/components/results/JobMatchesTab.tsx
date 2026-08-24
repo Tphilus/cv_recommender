@@ -1,4 +1,4 @@
-import type { JobMatchReport } from "@/api/types";
+import type { JobMatchReport } from "@/lib/api/types";
 
 export default function JobMatchesTab({ report }: { report: JobMatchReport }) {
   const matches = report.matches;

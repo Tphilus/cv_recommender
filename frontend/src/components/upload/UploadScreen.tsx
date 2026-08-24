@@ -59,7 +59,7 @@ export default function UploadScreen({ onUpload, disabled }: UploadScreenProps) 
         </h1>
       </div>
 
-      <div className="flex w-full max-w-[720px] flex-col gap-3">
+      <div className="flex w-full max-w-180 flex-col gap-3">
         <div
           className={`relative flex min-h-[140px] w-full flex-col rounded-[24px] border transition-all ${
             isDragOver ? "border-[#3b82f6] bg-[#27272A]" : "border-[#3f3f46] bg-[#27272A] hover:border-[#52525b]"

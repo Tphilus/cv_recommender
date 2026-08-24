@@ -33,14 +33,12 @@ def get_llm(provider: str = settings.DEFAULT_LLM_PROVIDER):
         )
         return ChatHuggingFace(llm=endpoint)
     if provider == "openrouter":
-        # OpenRouter is OpenAI-API-compatible — same ChatOpenAI client, just pointed
-        # at OpenRouter's base_url with its own key. HTTP-Referer/X-Title are the
-        # headers OpenRouter uses to attribute usage on your account dashboard.
         return ChatOpenAI(
             model=settings.OPENROUTER_DEFAULT_MODEL,
             api_key=settings.OPENROUTER_API_KEY,
             base_url="https://openrouter.ai/api/v1",
             temperature=0,
+            max_tokens=4096,
             default_headers={
                 "HTTP-Referer": settings.OPENROUTER_SITE_URL,
                 "X-Title": settings.OPENROUTER_SITE_NAME,

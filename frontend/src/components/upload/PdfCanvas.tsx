@@ -1,22 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
-// ─── Single page canvas ─────────────────────────────────────────────────────
+// Single page canvas 
 
 interface PdfCanvasProps {
   /** A File or Blob containing the PDF bytes */
   file: File | Blob;
-  /** Which page to render (1-indexed). Defaults to 1. */
   page?: number;
-  /** CSS class applied to the wrapping div */
   className?: string;
-  /** Pixel scale multiplier — higher = sharper but slower. Default 2 (retina). */
   scale?: number;
 }
 
-/**
- * Renders a single page of a PDF to a <canvas> using pdfjs-dist.
- * Works reliably in all browser contexts (no iframe needed).
- */
 export function PdfPageCanvas({ file, page = 1, className, scale = 2 }: PdfCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState(false);
@@ -78,7 +71,7 @@ export function PdfPageCanvas({ file, page = 1, className, scale = 2 }: PdfCanva
   );
 }
 
-// ─── All-pages viewer ────────────────────────────────────────────────────────
+// All-pages viewer 
 
 interface PdfAllPagesProps {
   file: File | Blob;

@@ -36,6 +36,11 @@ async def get_candidate(db: AsyncIOMotorDatabase, candidate_id: str) -> Optional
     return await db[CANDIDATES].find_one({"_id": oid})
 
 
+async def list_candidates(db: AsyncIOMotorDatabase, limit: int = 50) -> list[dict]:
+    cursor = db[CANDIDATES].find().sort("uploaded_at", -1).limit(limit)
+    return [doc async for doc in cursor]
+
+
 async def update_candidate_status(
     db: AsyncIOMotorDatabase, candidate_id: str, status: str, error_detail: Optional[str] = None
 ) -> None:

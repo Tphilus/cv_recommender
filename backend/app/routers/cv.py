@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import Response
@@ -25,26 +26,12 @@ router = APIRouter(prefix="/cv", tags=["cv"])
 
 ALLOWED_MIME_TYPES = DOCX_MIME_TYPES | IMAGE_MIME_TYPES | PDF_MIME_TYPES | TEXT_MIME_TYPES
 
-_EXTENSION_TO_MIME: dict[str, str] = {
-    ".pdf": next(iter(PDF_MIME_TYPES)),
-    ".docx": next(iter(DOCX_MIME_TYPES)),
-    ".txt": next(iter(TEXT_MIME_TYPES)),
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".webp": "image/webp",
-}
-
 
 def _mime_from_filename(filename: str) -> str:
     """Maps a filename's extension to its mime type. Falls back to
     application/octet-stream for unknown extensions so the browser will offer a
     download instead of trying to render something it can't preview."""
-    lower = filename.lower()
-    for ext, mime in _EXTENSION_TO_MIME.items():
-        if lower.endswith(ext):
-            return mime
-    return "application/octet-stream"
+    return mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
 
 @router.post("/upload", dependencies=[Depends(require_api_key)])
@@ -70,6 +57,14 @@ async def upload_cv(
 
     background_tasks.add_task(run_analysis_pipeline, candidate_id, raw, file.content_type, db)
     return {"candidate_id": candidate_id, "status": "processing"}
+
+
+@router.get("", dependencies=[Depends(require_api_key)])
+async def list_candidates(limit: int = 50, db: AsyncIOMotorDatabase = Depends(get_db)):
+    candidates = await mongo_service.list_candidates(db, limit=limit)
+    for candidate in candidates:
+        candidate["_id"] = str(candidate["_id"])
+    return candidates
 
 
 @router.get("/{candidate_id}", dependencies=[Depends(require_api_key)])

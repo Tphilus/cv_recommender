@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LuX } from "react-icons/lu";
 import PdfCanvas from "./PdfCanvas";
+import { DOCX_MIME, PDF_MIME, TEXT_MIME } from "@/lib/mime";
 
 interface AttachmentPreviewCardProps {
   file: File;
@@ -8,10 +9,6 @@ interface AttachmentPreviewCardProps {
   onClick: () => void;
   disabled?: boolean;
 }
-
-const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-const PDF_MIME = "application/pdf";
-const TEXT_MIME = "text/plain";
 
 /** Simulated document-page thumbnail for DOC / TXT files */
 function DocPageThumbnail({ filename }: { filename: string }) {

@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { toast } from "sonner";
-import { fetchCvPreviewBlob } from "@/api/client";
-import type { ExtractedCV, ImprovementReport, JobMatchReport } from "@/api/types";
+import { useAnalysisQuery } from "@/lib/hooks/useAnalysisQuery";
+import { useCvPreviewMutation } from "@/lib/hooks/cvMutations";
 import FilePreviewDialog from "../upload/FilePreviewDialog";
 import ExtractedProfileTab from "./ExtractedProfileTab";
 import ImprovementReportTab from "./ImprovementReportTab";
@@ -12,36 +12,31 @@ import JobMatchesTab from "./JobMatchesTab";
 interface ResultsScreenProps {
   candidateId: string;
   filename: string;
-  profile: ExtractedCV;
-  improvements: ImprovementReport;
-  jobs: JobMatchReport;
   onStartOver: () => void;
 }
 
-export default function ResultsScreen({
-  candidateId,
-  filename,
-  profile,
-  improvements,
-  jobs,
-  onStartOver,
-}: ResultsScreenProps) {
+export default function ResultsScreen({ candidateId, filename, onStartOver }: ResultsScreenProps) {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState(false);
+  const previewMutation = useCvPreviewMutation();
 
-  async function handlePreview() {
-    setPreviewLoading(true);
-    try {
-      const blob = await fetchCvPreviewBlob(candidateId);
-      setPreviewFile(new File([blob], filename, { type: blob.type }));
-      setPreviewOpen(true);
-    } catch (err) {
-      console.error("Failed to fetch CV preview:", err);
-      toast.error("Couldn't open the preview. Please try again.");
-    } finally {
-      setPreviewLoading(false);
-    }
+  // Already populated by useCvAnalysisSession up in App — this reads straight
+  // from the React Query cache, no extra network request.
+  const { data: analysis } = useAnalysisQuery(candidateId, true);
+  if (!analysis?.extracted_profile || !analysis.improvements || !analysis.job_matches) return null;
+  const { extracted_profile: profile, improvements, job_matches: jobs } = analysis;
+
+  function handlePreview() {
+    previewMutation.mutate(candidateId, {
+      onSuccess: (blob) => {
+        setPreviewFile(new File([blob], filename, { type: blob.type }));
+        setPreviewOpen(true);
+      },
+      onError: (err) => {
+        console.error("Failed to fetch CV preview:", err);
+        toast.error("Couldn't open the preview. Please try again.");
+      },
+    });
   }
 
   return (
@@ -56,10 +51,10 @@ export default function ResultsScreen({
           <Button
             variant="outline"
             onClick={handlePreview}
-            disabled={previewLoading}
+            disabled={previewMutation.isPending}
             title={filename}
           >
-            {previewLoading ? "Loading…" : "Preview CV"}
+            {previewMutation.isPending ? "Loading…" : "Preview CV"}
           </Button>
           <Button variant="link" className="text-primary" onClick={onStartOver}>
             Upload another CV
