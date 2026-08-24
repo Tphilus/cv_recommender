@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PdfAllPages } from "./PdfCanvas";
+import { DOCX_MIME, PDF_MIME, TEXT_MIME } from "@/lib/mime";
 
 interface FilePreviewDialogProps {
   file: File | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-const PDF_MIME = "application/pdf";
-const TEXT_MIME = "text/plain";
 
 export default function FilePreviewDialog({ file, open, onOpenChange }: FilePreviewDialogProps) {
   const docxContainerRef = useRef<HTMLDivElement>(null);
