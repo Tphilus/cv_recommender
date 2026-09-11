@@ -9,3 +9,5 @@ improvements, and recommends relevant jobs with real apply/learning links.
 - **Frontend**: simple React UI (in progress).
 - **CI/CD**: GitHub Actions workflows for dev/prod deploys live in
   [.github/workflows/](.github/workflows/).
+
+<img width="1911" height="1078" alt="image" src="https://github.com/user-attachments/assets/2579c7fb-f6a5-4933-84dd-33452b3cda6a" />
